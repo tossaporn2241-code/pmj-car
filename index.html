@@ -1,0 +1,192 @@
+<!DOCTYPE html><html lang="th"><head>
+<meta charset="utf-8">
+<title>ระบบขอใช้รถยนต์ สนง.พมจ.สงขลา</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1d4ed8">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ขอใช้รถ พมจ.สงขลา">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;background:#1d4ed8;font-family:'Sarabun',-apple-system,'Segoe UI',sans-serif;overflow:hidden}
+#frame{position:fixed;inset:0;width:100%;height:100%;border:0;background:#eef2f9}
+.screen{position:fixed;inset:0;z-index:10;display:none;flex-direction:column;align-items:center;justify-content:center;
+ gap:13px;padding:24px max(20px,env(safe-area-inset-left)) calc(24px + env(safe-area-inset-bottom));text-align:center;
+ color:#fff;background:linear-gradient(140deg,#0b2a6b,#1d4ed8 45%,#0ea5e9);overflow-y:auto}
+.screen.on{display:flex}
+.logo{width:88px;height:88px;border-radius:26px;background:rgba(255,255,255,.17);display:flex;align-items:center;
+ justify-content:center;font-size:44px;flex:0 0 auto}
+h1{font-size:18.5px;font-weight:700}h2{font-size:15px;font-weight:600}
+p{font-size:13.5px;opacity:.92;line-height:1.65;max-width:430px}
+.spin{width:36px;height:36px;border:4px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.btn{background:#fff;color:#1d4ed8;border:0;border-radius:14px;padding:13px 20px;font-size:15px;font-weight:700;
+ cursor:pointer;font-family:inherit;min-height:50px}
+.btn.g{background:rgba(255,255,255,.18);color:#fff}
+.btn:active{transform:scale(.97)}
+.row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;width:100%;max-width:430px}
+.row .btn{flex:1;min-width:140px}
+.box{background:rgba(255,255,255,.13);border-radius:17px;padding:14px 16px;max-width:430px;width:100%;text-align:left}
+.box b.h{display:block;font-size:11.5px;opacity:.82;margin-bottom:7px;letter-spacing:.5px}
+.kv{display:flex;justify-content:space-between;gap:10px;padding:5px 0;font-size:13.5px;border-bottom:1px dashed rgba(255,255,255,.18)}
+.kv:last-child{border:0}
+.fld{width:100%;max-width:430px;text-align:left;margin-bottom:9px}
+.fld label{font-size:12.5px;opacity:.85;display:block;margin-bottom:4px}
+.fld input,.fld textarea{width:100%;padding:11px 13px;border-radius:12px;border:0;font-family:inherit;font-size:16px;min-height:46px}
+.fld textarea{min-height:70px;resize:vertical}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:9px;width:100%;max-width:430px}
+#bar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:#0f172a;color:#fff;
+ padding:13px 16px calc(13px + env(safe-area-inset-bottom));display:none;align-items:center;gap:12px;
+ box-shadow:0 -6px 24px rgba(0,0,0,.35)}
+#bar.on{display:flex}
+#bar .t{flex:1;font-size:13.5px;line-height:1.45}
+.x{background:none;border:0;color:#fff;font-size:22px;cursor:pointer;opacity:.7}
+</style></head><body>
+
+<iframe id="frame" title="ระบบขอใช้รถยนต์" allow="clipboard-write"></iframe>
+
+<div class="screen on" id="splash">
+  <div class="logo">🚗</div><h1>ระบบขอใช้รถยนต์</h1>
+  <p>สำนักงานพัฒนาสังคมและความมั่นคงของมนุษย์<br>จังหวัดสงขลา</p><div class="spin"></div>
+</div>
+
+<div class="screen" id="offline">
+  <div class="logo">📡</div><h1>ขณะนี้ไม่มีการเชื่อมต่ออินเทอร์เน็ต</h1>
+  <p>คุณยังบันทึกคำขอใช้รถแบบออฟไลน์ได้ ระบบจะส่งให้อัตโนมัติเมื่อกลับมาออนไลน์</p>
+  <div class="box" id="snapBox"></div>
+  <div class="row">
+    <button class="btn" onclick="retry()">🔄 ลองเชื่อมต่อใหม่</button>
+    <button class="btn g" onclick="showDraft()">📝 เขียนคำขอออฟไลน์</button>
+  </div>
+</div>
+
+<div class="screen" id="draft">
+  <h2>📝 คำขอใช้รถ (ออฟไลน์)</h2>
+  <div class="fld"><label>ภารกิจ/วัตถุประสงค์ *</label><textarea id="d_purpose"></textarea></div>
+  <div class="g2">
+    <div class="fld"><label>อำเภอ *</label><input id="d_dist"></div>
+    <div class="fld"><label>สถานที่</label><input id="d_place"></div>
+    <div class="fld"><label>วันที่ไป *</label><input id="d_sd" type="date"></div>
+    <div class="fld"><label>เวลาไป *</label><input id="d_st" type="time" value="08:30"></div>
+    <div class="fld"><label>วันที่กลับ *</label><input id="d_ed" type="date"></div>
+    <div class="fld"><label>เวลากลับ *</label><input id="d_et" type="time" value="16:30"></div>
+    <div class="fld"><label>จำนวนคน</label><input id="d_pax" type="number" min="1" value="1"></div>
+    <div class="fld"><label>เบอร์โทร *</label><input id="d_phone" inputmode="tel"></div>
+  </div>
+  <div class="fld"><label>หมายเหตุ</label><input id="d_note"></div>
+  <div class="row"><button class="btn" onclick="saveDraft()">💾 บันทึกไว้ส่งภายหลัง</button>
+  <button class="btn g" onclick="back()">ย้อนกลับ</button></div>
+</div>
+
+<div id="bar"><div class="t" id="barT"></div><button class="btn" id="barB"></button>
+<button class="x" onclick="document.getElementById('bar').classList.remove('on')">✕</button></div>
+
+<script>
+/* ====== ตั้งค่า : วาง URL /exec ของ Apps Script ตรงนี้ ====== */
+var GAS_URL = 'https://script.google.com/macros/s/AKfycby_X0VnGbSDp2M3dJdoxQmj5zbXHYmN9yYt1ENMctjBtKLR8JsCiTLaY3uYfC1v2yDtFA/exec';
+
+var $=function(i){return document.getElementById(i);}, loaded=false, prompt_=null, tmr=null;
+var DKEY='pmj_shell_drafts', SKEY='pmj_shell_snap';
+function show(id){['splash','offline','draft'].forEach(function(s){$(s).classList.toggle('on',s===id);});}
+function back(){ show(navigator.onLine?'splash':'offline'); if(navigator.onLine) retry(); }
+
+/* ---------- โหลดระบบหลัก ---------- */
+function boot(){
+  if(!navigator.onLine){ renderSnap(); show('offline'); return; }
+  show('splash'); loaded=false;
+  $('frame').src = GAS_URL + (GAS_URL.indexOf('?')<0?'?':'&') + 'v=' + Date.now();
+  clearTimeout(tmr);
+  tmr = setTimeout(function(){ if(!loaded){ renderSnap(); show('offline'); } }, 25000);
+}
+function retry(){ if(navigator.onLine) boot(); else { renderSnap(); show('offline'); } }
+$('frame').addEventListener('load', function(){
+  loaded=true; clearTimeout(tmr);
+  setTimeout(function(){ show(''); sendDrafts(); gotoParam(); }, 900);
+});
+function gotoParam(){
+  var p=new URLSearchParams(location.search).get('p');
+  if(p) setTimeout(function(){ post({type:'pmj-goto', page:p}); }, 2200);
+}
+function post(m){ try{ $('frame').contentWindow.postMessage(m,'*'); }catch(e){} }
+
+/* ---------- ร่างออฟไลน์ ---------- */
+function drafts(){ try{ return JSON.parse(localStorage.getItem(DKEY)||'[]'); }catch(e){ return []; } }
+function showDraft(){ var t=new Date().toISOString().substring(0,10);
+  if(!$('d_sd').value)$('d_sd').value=t; if(!$('d_ed').value)$('d_ed').value=t; show('draft'); }
+function saveDraft(){
+  var p={ purpose:$('d_purpose').value.trim(), district:$('d_dist').value.trim(), place:$('d_place').value.trim(),
+    province:'สงขลา', subdistrict:'', startDate:$('d_sd').value, startTime:$('d_st').value,
+    endDate:$('d_ed').value, endTime:$('d_et').value, passengers:$('d_pax').value||'1',
+    passengerNames:'', phone:$('d_phone').value.trim(), note:$('d_note').value.trim() };
+  if(!p.purpose||!p.district||!p.phone||!p.startDate||!p.endDate) return alert('กรุณากรอกข้อมูลที่มีเครื่องหมาย * ให้ครบ');
+  var a=drafts(); a.push(p); localStorage.setItem(DKEY, JSON.stringify(a));
+  $('d_purpose').value=''; $('d_place').value=''; $('d_note').value='';
+  alert('บันทึกไว้ในเครื่องแล้ว ('+a.length+' รายการ)\nระบบจะส่งอัตโนมัติเมื่อกลับมาออนไลน์');
+  renderSnap(); show('offline');
+}
+function sendDrafts(){ var a=drafts(); if(a.length) post({type:'pmj-drafts', items:a}); }
+
+/* ---------- ข้อมูลสรุปล่าสุด ---------- */
+function renderSnap(){
+  var s=null; try{ s=JSON.parse(localStorage.getItem(SKEY)||'null'); }catch(e){}
+  var n=drafts().length;
+  $('snapBox').innerHTML = '<b class="h">ข้อมูลที่ซิงก์ไว้ล่าสุด</b>' + (s?
+    kv('เวลาซิงก์', new Date(s.at).toLocaleString('th-TH')) +
+    kv('รถพร้อมใช้งาน', s.v.ready+' / '+s.v.total+' คัน') +
+    kv('รถอยู่ระหว่างใช้งาน', s.v.inuse+' คัน') +
+    kv('พนักงานขับรถพร้อม', s.dr.ready+' / '+s.dr.total+' คน') +
+    kv('คำขอรอตรวจสอบ', s.pending+' รายการ') +
+    kv('ภารกิจวันนี้', s.today+' รายการ')
+    : '<div class="kv">ยังไม่มีข้อมูล กรุณาเปิดระบบขณะออนไลน์อย่างน้อย 1 ครั้ง</div>')
+    + kv('📝 ร่างรอส่ง', n+' รายการ');
+}
+function kv(k,v){ return '<div class="kv"><span>'+k+'</span><b>'+v+'</b></div>'; }
+
+/* ---------- รับข้อความจากระบบหลัก ---------- */
+window.addEventListener('message', function(e){
+  var d=e.data||{};
+  if(d.type==='pmj-snapshot'){ localStorage.setItem(SKEY, JSON.stringify(d.payload)); }
+  if(d.type==='pmj-drafts-ack'){ localStorage.removeItem(DKEY); renderSnap(); }
+});
+window.addEventListener('online', function(){ bar('กลับมาออนไลน์แล้ว กำลังซิงก์ข้อมูล','เปิดระบบ',boot); boot(); });
+window.addEventListener('offline', function(){ renderSnap(); show('offline'); });
+
+/* ---------- ติดตั้งแอป ---------- */
+function bar(text,btn,fn){ $('barT').textContent=text; $('barB').textContent=btn;
+  $('barB').onclick=function(){ $('bar').classList.remove('on'); fn(); }; $('bar').classList.add('on'); }
+window.addEventListener('beforeinstallprompt', function(e){
+  e.preventDefault(); prompt_=e;
+  bar('ติดตั้งแอปลงหน้าจอโฮม เพื่อเปิดเต็มจอและใช้งานออฟไลน์','ติดตั้ง', function(){
+    prompt_.prompt(); prompt_.userChoice.then(function(){ prompt_=null; });
+  });
+});
+window.addEventListener('appinstalled', function(){ $('bar').classList.remove('on'); });
+(function iosHint(){
+  var ios=/iphone|ipad|ipod/i.test(navigator.userAgent), stand=navigator.standalone||matchMedia('(display-mode: standalone)').matches;
+  if(ios && !stand && !localStorage.getItem('pmj_ios_hint')){
+    setTimeout(function(){ bar('ติดตั้งแอป: กดปุ่มแชร์ ⬆️ ด้านล่าง แล้วเลือก "เพิ่มไปยังหน้าจอโฮม"','เข้าใจแล้ว',
+      function(){ localStorage.setItem('pmj_ios_hint','1'); }); }, 3500);
+  }
+})();
+
+/* ---------- Service Worker ---------- */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').then(function(reg){
+      reg.addEventListener('updatefound', function(){
+        var w=reg.installing;
+        w.addEventListener('statechange', function(){
+          if(w.state==='installed' && navigator.serviceWorker.controller)
+            bar('มีเวอร์ชันใหม่ของแอป','อัปเดต', function(){ w.postMessage('SKIP_WAITING'); location.reload(); });
+        });
+      });
+    }).catch(function(){});
+  });
+}
+boot(); renderSnap();
+</script></body></html>
